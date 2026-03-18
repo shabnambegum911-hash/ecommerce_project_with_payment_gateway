@@ -23,6 +23,8 @@ public class OrderItem {
 
     private int quantity;
 
-    private BigDecimal price; // Price at the time of order
+    private BigDecimal price; // Price at the 
+    // time of order
+    private BigDecimal totalPrice; // quantity * price
 
 }
