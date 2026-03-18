@@ -21,13 +21,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/api/products/**").permitAll() // Allow public access to products
-                .requestMatchers("/api/auth/**").permitAll() // Allow registration and login
-                .anyRequest().authenticated()
-                .and()
-                .httpBasic(); // Use basic auth for simplicity, or JWT
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/api/products/**").permitAll() // Allow public access to products
+                        .requestMatchers("/api/auth/**").permitAll() // Allow registration and login
+                        .requestMatchers("/api/payments/**").authenticated() // Require auth for payments
+                        .requestMatchers("/api/orders/**").authenticated() // Require auth for orders
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(basic -> {}); // Use basic auth for simplicity, or JWT
 
         return http.build();
     }
