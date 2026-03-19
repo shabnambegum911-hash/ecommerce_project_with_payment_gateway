@@ -82,7 +82,7 @@ export class OrdersComponent implements OnInit {
         this.orders = orders;
         this.loading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading orders:', error);
         this.loading = false;
       }

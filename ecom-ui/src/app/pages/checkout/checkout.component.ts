@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { routing } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { NgxStripeModule } from '@ngx-stripe/ngx-stripe';
 import { CartService } from '../../services/cart.service';
 import { OrderService } from '../../services/order.service';
 import { PaymentService } from '../../services/payment.service';
@@ -12,7 +11,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="container mt-4">
       <h1>Checkout</h1>
@@ -24,7 +23,7 @@ import { environment } from '../../../environments/environment';
               <h5>Order Summary</h5>
             </div>
             <div class="card-body">
-              <p><strong>Total Amount:</strong> \${{ totalAmount }}</p>
+              <p><strong>Total Amount:</strong> {{ totalAmount | currency }}</p>
               <p><strong>Items:</strong> {{ itemCount }}</p>
             </div>
           </div>
@@ -83,7 +82,7 @@ import { environment } from '../../../environments/environment';
                   type="submit" 
                   class="btn btn-success w-100"
                   [disabled]="processing">
-                  <span *ngIf="!processing">Pay \${{ totalAmount }}</span>
+                  <span *ngIf="!processing">Pay {{ totalAmount | currency }}</span>
                   <span *ngIf="processing">
                     <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                     Processing...
@@ -137,11 +136,11 @@ export class CheckoutComponent implements OnInit {
 
   loadCartSummary(): void {
     this.cartService.getCart(this.userId).subscribe({
-      next: (cart) => {
+      next: (cart: any) => {
         this.totalAmount = cart.totalPrice;
         this.itemCount = cart.items.length;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading cart:', error);
       }
     });
@@ -158,9 +157,9 @@ export class CheckoutComponent implements OnInit {
 
     // Create order first
     this.cartService.getCart(this.userId).subscribe({
-      next: (cart) => {
+      next: (cart: any) => {
         const order = this.orderService.createOrder(this.userId, cart.items).subscribe({
-          next: (createdOrder) => {
+          next: (createdOrder: any) => {
             // Create payment intent
             const paymentRequest = {
               orderId: createdOrder.id,
@@ -172,7 +171,7 @@ export class CheckoutComponent implements OnInit {
             };
 
             this.paymentService.createStripeIntent(paymentRequest).subscribe({
-              next: (response) => {
+              next: (response: any) => {
                 this.successMessage = `Order created successfully! Payment Intent: ${response.paymentIntentId}`;
                 this.processing = false;
                 
@@ -181,19 +180,19 @@ export class CheckoutComponent implements OnInit {
                   window.location.href = `/orders`;
                 }, 3000);
               },
-              error: (error) => {
+              error: (error: any) => {
                 this.errorMessage = 'Payment processing failed: ' + (error.error?.message || 'Unknown error');
                 this.processing = false;
               }
             });
           },
-          error: (error) => {
+          error: (error: any) => {
             this.errorMessage = 'Error creating order: ' + (error.error?.message || 'Unknown error');
             this.processing = false;
           }
         });
       },
-      error: (error) => {
+      error: (error: any) => {
         this.errorMessage = 'Error loading cart: ' + (error.error?.message || 'Unknown error');
         this.processing = false;
       }

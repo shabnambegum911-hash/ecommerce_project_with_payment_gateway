@@ -40,7 +40,7 @@ import { Product } from '../../models';
               <h5 class="card-title">{{ product.name }}</h5>
               <p class="card-text text-muted">{{ product.description | slice:0:100 }}...</p>
               <p class="card-text"><strong>Category:</strong> {{ product.category }}</p>
-              <p class="card-text"><strong>Price:</strong> <span class="text-success">${{ product.price }}</span></p>
+              <p class="card-text"><strong>Price:</strong> <span class="text-success">{{ product.price | currency }}</span></p>
               <p class="card-text">
                 <strong>Stock:</strong> 
                 <span [class]="product.stockQuantity > 0 ? 'text-success' : 'text-danger'">
@@ -87,12 +87,12 @@ export class ProductsComponent implements OnInit {
   loadProducts(): void {
     this.loading = true;
     this.productService.getAllProducts().subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.allProducts = response;
         this.products = response;
         this.loading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading products:', error);
         this.loading = false;
       }
@@ -104,10 +104,10 @@ export class ProductsComponent implements OnInit {
       this.products = this.allProducts;
     } else {
       this.productService.searchProducts(this.searchTerm).subscribe({
-        next: (results) => {
+        next: (results: any) => {
           this.products = results;
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error searching products:', error);
         }
       });
@@ -125,7 +125,7 @@ export class ProductsComponent implements OnInit {
       next: () => {
         alert('Product added to cart!');
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error adding to cart:', error);
         alert('Error adding product to cart');
       }

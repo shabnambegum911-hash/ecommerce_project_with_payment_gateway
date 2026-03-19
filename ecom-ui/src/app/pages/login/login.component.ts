@@ -107,12 +107,12 @@ export class LoginComponent {
     const user: User = this.loginForm.value;
 
     this.authService.login(user).subscribe({
-      next: (response) => {
-        this.authService.basic_auth(user.username, user.password);
+      next: (response: any) => {
+        this.authService.basic_auth(user.username || '', user.password || '');
         this.authService.setCurrentUser(user);
         this.router.navigate(['/products']);
       },
-      error: (error) => {
+      error: (error: any) => {
         this.errorMessage = error.error?.message || 'Login failed. Please try again.';
         this.loading = false;
       }

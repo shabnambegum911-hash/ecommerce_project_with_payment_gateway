@@ -43,8 +43,8 @@ import { Cart, CartItem } from '../../models';
                     min="1"
                     (change)="updateQuantity(item)">
                 </td>
-                <td>${{ item.price }}</td>
-                <td>${{ item.totalPrice }}</td>
+                <td>{{ item.price | currency }}</td>
+                <td>{{ item.totalPrice | currency }}</td>
                 <td>
                   <button 
                     class="btn btn-sm btn-danger"
@@ -101,11 +101,11 @@ export class CartComponent implements OnInit {
   loadCart(): void {
     this.loading = true;
     this.cartService.getCart(this.userId).subscribe({
-      next: (cart) => {
+      next: (cart: any) => {
         this.cart = cart;
         this.loading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading cart:', error);
         this.loading = false;
       }
@@ -117,7 +117,7 @@ export class CartComponent implements OnInit {
       next: () => {
         this.loadCart();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error updating cart:', error);
       }
     });
@@ -128,7 +128,7 @@ export class CartComponent implements OnInit {
       next: () => {
         this.loadCart();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error removing item:', error);
       }
     });
@@ -140,7 +140,7 @@ export class CartComponent implements OnInit {
         next: () => {
           this.loadCart();
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error clearing cart:', error);
         }
       });

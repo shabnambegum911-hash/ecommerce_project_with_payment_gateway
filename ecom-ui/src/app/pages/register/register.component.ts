@@ -135,13 +135,13 @@ export class RegisterComponent {
     const user: User = this.registerForm.value;
 
     this.authService.register(user).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.successMessage = 'Registration successful! Redirecting to login...';
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 2000);
       },
-      error: (error) => {
+      error: (error: any) => {
         this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
         this.loading = false;
       }
