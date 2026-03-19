@@ -78,7 +78,7 @@ export class OrdersComponent implements OnInit {
   loadOrders(): void {
     this.loading = true;
     this.orderService.getOrdersByUser(this.userId).subscribe({
-      next: (orders) => {
+      next: (orders: any) => {
         this.orders = orders;
         this.loading = false;
       },
