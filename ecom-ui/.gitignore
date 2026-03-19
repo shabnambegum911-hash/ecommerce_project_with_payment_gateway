@@ -1,0 +1,61 @@
+# Node modules
+node_modules/
+npm-debug.log
+npm-error.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Angular build
+/dist/
+/out-tsc/
+/bazel-out/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Tests
+/coverage/
+/karma.conf.js
+karma-coverage/
+.nyc_output/
+
+# Environments
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Angular cache
+.angular
+.angular/cache
+
+# Typescript
+*.ts.bak
+tsconfig.tsbuildinfo
+
+# Build
+dist/
+out/
+
+# OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+*.log
+*.pot
+*.mo
+.env
+
+# Development
+.env.development
+.env.test
