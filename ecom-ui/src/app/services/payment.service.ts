@@ -9,7 +9,8 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class PaymentService {
-  private apiUrl = `${environment.apiUrl}/payments`;
+  // Service for handling payment operations
+  private paymentApiUrl = `${environment.apiUrl}/payments`;
 
   constructor(private http: HttpClient) {}
 
