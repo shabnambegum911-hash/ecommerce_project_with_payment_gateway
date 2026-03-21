@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { CartService } from '../../services/cart.service';
 import { AuthService } from '../../services/auth.service';
 import { Cart, CartItem } from '../../models';
@@ -8,79 +9,116 @@ import { Cart, CartItem } from '../../models';
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   template: `
-    <div class="container mt-4">
-      <h1>Shopping Cart</h1>
+    <div class="container py-4">
+      <h2 class="mb-4 fw-bold">🛒 Shopping Cart</h2>
 
-      <div *ngIf="loading" class="text-center">
-        <div class="spinner-border" role="status">
-          <span class="visually-hidden">Loading...</span>
+      <!-- 🔄 Loader -->
+      <div *ngIf="loading" class="text-center my-5">
+        <div class="spinner-border text-primary"></div>
+      </div>
+
+      <!-- 🧾 Cart Items -->
+      <div *ngIf="!loading && cart?.items?.length">
+
+        <div class="card shadow-sm mb-3 p-3" *ngFor="let item of cart.items">
+          <div class="row align-items-center">
+
+            <div class="col-md-3">
+              <strong>Product #{{ item.productId }}</strong>
+            </div>
+
+            <div class="col-md-3 text-muted">
+              Price: {{ item.price | currency:'INR' }}
+            </div>
+
+            <!-- 🔢 Quantity Controls -->
+            <div class="col-md-3 d-flex align-items-center gap-2">
+              <button 
+                class="btn btn-outline-secondary btn-sm"
+                (click)="changeQty(item, -1)"
+                [disabled]="item.quantity <= 1 || loading">
+                -
+              </button>
+
+              <span class="fw-bold">{{ item.quantity }}</span>
+
+              <button 
+                class="btn btn-outline-secondary btn-sm"
+                (click)="changeQty(item, 1)"
+                [disabled]="loading">
+                +
+              </button>
+            </div>
+
+            <div class="col-md-2 fw-semibold text-success">
+              {{ (item.price * item.quantity) | currency:'INR' }}
+            </div>
+
+            <div class="col-md-1 text-end">
+              <button 
+                class="btn btn-sm btn-danger"
+                (click)="removeItem(item.productId)"
+                [disabled]="loading">
+                ✕
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 💳 Summary -->
+        <div class="card p-4 shadow-sm mt-4">
+          <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+              <button 
+                class="btn btn-outline-danger me-2"
+                (click)="clearCart()"
+                [disabled]="loading">
+                Clear Cart
+              </button>
+
+              <a routerLink="/products" class="btn btn-outline-secondary">
+                Continue Shopping
+              </a>
+            </div>
+
+            <div class="text-end">
+              <h4>Total:</h4>
+              <h3 class="text-success fw-bold">
+                {{ cart?.totalPrice | currency:'INR' }}
+              </h3>
+
+              <a 
+                routerLink="/checkout" 
+                class="btn btn-success btn-lg mt-2">
+                Proceed to Checkout
+              </a>
+            </div>
+
+          </div>
         </div>
       </div>
 
-      <div *ngIf="!loading && cart && cart.items.length > 0">
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-dark">
-              <tr>
-                <th>Product ID</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Total</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of cart.items">
-                <td>{{ item.productId }}</td>
-                <td>
-                  <input 
-                    type="number" 
-                    class="form-control" 
-                    style="width: 70px;"
-                    [(ngModel)]="item.quantity"
-                    min="1"
-                    (change)="updateQuantity(item)">
-                </td>
-                <td>{{ item.price | currency }}</td>
-                <td>{{ item.totalPrice | currency }}</td>
-                <td>
-                  <button 
-                    class="btn btn-sm btn-danger"
-                    (click)="removeItem(item.productId)">
-                    Remove
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="row mt-4">
-          <div class="col-md-6">
-            <button 
-              class="btn btn-warning me-2"
-              (click)="clearCart()">
-              Clear Cart
-            </button>
-            <a routerLink="/products" class="btn btn-secondary">Continue Shopping</a>
-          </div>
-          <div class="col-md-6 text-end">
-            <h3>Total: <span class="text-success">\${{ cart.totalPrice }}</span></h3>
-            <a routerLink="/checkout" class="btn btn-success btn-lg">Proceed to Checkout</a>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="!loading && (!cart || cart.items.length === 0)" class="alert alert-info">
-        <p>Your cart is empty. <a routerLink="/products">Continue shopping</a></p>
+      <!-- 📭 Empty State -->
+      <div *ngIf="!loading && (!cart || !cart.items?.length)" class="text-center mt-5">
+        <h4>Your cart is empty 😕</h4>
+        <a routerLink="/products" class="btn btn-primary mt-3">
+          Shop Now
+        </a>
       </div>
     </div>
   `,
-  styles: []
+  styles: [`
+    .card {
+      border-radius: 12px;
+    }
+  `]
 })
 export class CartComponent implements OnInit {
+
   cart: Cart | null = null;
   loading = false;
   userId = 0;
@@ -101,49 +139,53 @@ export class CartComponent implements OnInit {
   loadCart(): void {
     this.loading = true;
     this.cartService.getCart(this.userId).subscribe({
-      next: (cart: any) => {
+      next: (cart: Cart) => {
         this.cart = cart;
         this.loading = false;
       },
-      error: (error: any) => {
+      error: (error) => {
         console.error('Error loading cart:', error);
         this.loading = false;
       }
     });
   }
 
-  updateQuantity(item: CartItem): void {
-    this.cartService.updateCartItem(this.userId, item.productId, item.quantity).subscribe({
-      next: () => {
-        this.loadCart();
-      },
-      error: (error: any) => {
-        console.error('Error updating cart:', error);
+  // 🔢 Better quantity handler
+  changeQty(item: CartItem, delta: number): void {
+    const newQty = item.quantity + delta;
+    if (newQty < 1) return;
+
+    this.loading = true;
+    this.cartService.updateCartItem(this.userId, item.productId, newQty).subscribe({
+      next: () => this.loadCart(),
+      error: (err) => {
+        console.error('Error updating quantity:', err);
+        this.loading = false;
       }
     });
   }
 
   removeItem(productId: number): void {
+    this.loading = true;
     this.cartService.removeFromCart(this.userId, productId).subscribe({
-      next: () => {
-        this.loadCart();
-      },
-      error: (error: any) => {
+      next: () => this.loadCart(),
+      error: (error) => {
         console.error('Error removing item:', error);
+        this.loading = false;
       }
     });
   }
 
   clearCart(): void {
-    if (confirm('Are you sure you want to clear your cart?')) {
-      this.cartService.clearCart(this.userId).subscribe({
-        next: () => {
-          this.loadCart();
-        },
-        error: (error: any) => {
-          console.error('Error clearing cart:', error);
-        }
-      });
-    }
+    if (!confirm('Are you sure you want to clear your cart?')) return;
+
+    this.loading = true;
+    this.cartService.clearCart(this.userId).subscribe({
+      next: () => this.loadCart(),
+      error: (error) => {
+        console.error('Error clearing cart:', error);
+        this.loading = false;
+      }
+    });
   }
 }

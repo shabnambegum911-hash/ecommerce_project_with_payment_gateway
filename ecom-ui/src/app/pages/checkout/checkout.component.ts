@@ -2,121 +2,142 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { switchMap } from 'rxjs';
+
 import { CartService } from '../../services/cart.service';
 import { OrderService } from '../../services/order.service';
 import { PaymentService } from '../../services/payment.service';
 import { AuthService } from '../../services/auth.service';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="container mt-4">
-      <h1>Checkout</h1>
+    <div class="container py-4">
+      <h2 class="fw-bold mb-4">💳 Checkout</h2>
 
-      <div class="row">
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header">
-              <h5>Order Summary</h5>
+      <div class="row g-4">
+
+        <!-- 🧾 Order Summary -->
+        <div class="col-md-5">
+          <div class="card shadow-sm p-3">
+            <h5 class="mb-3">Order Summary</h5>
+
+            <div class="d-flex justify-content-between">
+              <span>Items</span>
+              <span>{{ itemCount }}</span>
             </div>
-            <div class="card-body">
-              <p><strong>Total Amount:</strong> {{ totalAmount | currency }}</p>
-              <p><strong>Items:</strong> {{ itemCount }}</p>
+
+            <div class="d-flex justify-content-between mt-2">
+              <span>Total</span>
+              <strong class="text-success">
+                {{ totalAmount | currency:'INR' }}
+              </strong>
             </div>
           </div>
         </div>
 
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header">
-              <h5>Payment Information</h5>
-            </div>
-            <div class="card-body">
-              <form (ngSubmit)="processPayment()">
-                <div class="mb-3">
-                  <label for="email">Email</label>
-                  <input 
-                    type="email" 
-                    class="form-control" 
-                    id="email"
-                    [(ngModel)]="paymentData.email"
-                    name="email"
-                    required>
-                </div>
+        <!-- 💳 Payment -->
+        <div class="col-md-7">
+          <div class="card shadow-sm p-4">
+            <h5 class="mb-3">Payment Details</h5>
 
-                <div class="mb-3">
-                  <label for="cardName">Cardholder Name</label>
-                  <input 
-                    type="text" 
-                    class="form-control" 
-                    id="cardName"
-                    [(ngModel)]="paymentData.cardName"
-                    name="cardName"
-                    required>
-                </div>
+            <form (ngSubmit)="processPayment()" #form="ngForm">
 
-                <div class="mb-3">
-                  <label for="currency">Currency</label>
-                  <select 
-                    class="form-select" 
-                    id="currency"
-                    [(ngModel)]="paymentData.currency"
-                    name="currency">
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="INR">INR (₹)</option>
-                  </select>
-                </div>
+              <div class="mb-3">
+                <label>Email</label>
+                <input 
+                  type="email"
+                  class="form-control"
+                  [(ngModel)]="paymentData.email"
+                  name="email"
+                  required>
+              </div>
 
-                <div class="alert alert-info">
-                  <p><strong>Test Card:</strong> 4242 4242 4242 4242</p>
-                  <p><strong>Expiry:</strong> 12/25</p>
-                  <p><strong>CVC:</strong> 123</p>
-                </div>
+              <div class="mb-3">
+                <label>Cardholder Name</label>
+                <input 
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="paymentData.cardName"
+                  name="cardName"
+                  required>
+              </div>
 
-                <button 
-                  type="submit" 
-                  class="btn btn-success w-100"
-                  [disabled]="processing">
-                  <span *ngIf="!processing">Pay {{ totalAmount | currency }}</span>
-                  <span *ngIf="processing">
-                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Processing...
-                  </span>
-                </button>
-              </form>
+              <div class="mb-3">
+                <label>Currency</label>
+                <select 
+                  class="form-select"
+                  [(ngModel)]="paymentData.currency"
+                  name="currency">
+                  <option value="INR">INR (₹)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </div>
 
-              <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+              <!-- 💡 Test Card -->
+              <div class="alert alert-light border">
+                <small>
+                  <strong>Test Card:</strong> 4242 4242 4242 4242<br>
+                  Exp: 12/25 | CVC: 123
+                </small>
+              </div>
+
+              <!-- ❌ Error -->
+              <div *ngIf="errorMessage" class="alert alert-danger">
                 {{ errorMessage }}
               </div>
 
-              <div *ngIf="successMessage" class="alert alert-success mt-3">
+              <!-- ✅ Success -->
+              <div *ngIf="successMessage" class="alert alert-success">
                 {{ successMessage }}
               </div>
-            </div>
+
+              <!-- 💰 Pay Button -->
+              <button 
+                type="submit"
+                class="btn btn-success w-100 mt-2"
+                [disabled]="processing || form.invalid">
+
+                <span *ngIf="!processing">
+                  Pay {{ totalAmount | currency:'INR' }}
+                </span>
+
+                <span *ngIf="processing">
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Processing...
+                </span>
+
+              </button>
+
+            </form>
           </div>
         </div>
       </div>
     </div>
   `,
-  styles: []
+  styles: [`
+    .card {
+      border-radius: 12px;
+    }
+  `]
 })
 export class CheckoutComponent implements OnInit {
+
   totalAmount = 0;
   itemCount = 0;
   userId = 0;
+
   processing = false;
   errorMessage = '';
   successMessage = '';
-  
+
   paymentData = {
     email: '',
     cardName: '',
-    currency: 'USD'
+    currency: 'INR'
   };
 
   constructor(
@@ -137,63 +158,59 @@ export class CheckoutComponent implements OnInit {
   loadCartSummary(): void {
     this.cartService.getCart(this.userId).subscribe({
       next: (cart: any) => {
-        this.totalAmount = cart.totalPrice;
-        this.itemCount = cart.items.length;
+        this.totalAmount = cart?.totalPrice || 0;
+        this.itemCount = cart?.items?.length || 0;
       },
-      error: (error: any) => {
-        console.error('Error loading cart:', error);
-      }
+      error: (err) => console.error('Error loading cart:', err)
     });
   }
 
+  // 🚀 CLEAN FLOW (No nested subscribe hell)
   processPayment(): void {
+
     if (!this.paymentData.email || !this.paymentData.cardName) {
-      this.errorMessage = 'Please fill in all fields';
+      this.errorMessage = 'Please fill all required fields';
       return;
     }
 
     this.processing = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
-    // Create order first
-    this.cartService.getCart(this.userId).subscribe({
-      next: (cart: any) => {
-        const order = this.orderService.createOrder(this.userId, cart.items).subscribe({
-          next: (createdOrder: any) => {
-            // Create payment intent
-            const paymentRequest = {
-              orderId: createdOrder.id,
-              amount: this.totalAmount,
-              currency: this.paymentData.currency,
-              description: `Order #${createdOrder.id}`,
-              customerEmail: this.paymentData.email,
-              paymentMethod: 'CARD'
-            };
+    this.cartService.getCart(this.userId).pipe(
 
-            this.paymentService.createStripeIntent(paymentRequest).subscribe({
-              next: (response: any) => {
-                this.successMessage = `Order created successfully! Payment Intent: ${response.paymentIntentId}`;
-                this.processing = false;
-                
-                // Redirect to order confirmation after 3 seconds
-                setTimeout(() => {
-                  window.location.href = `/orders`;
-                }, 3000);
-              },
-              error: (error: any) => {
-                this.errorMessage = 'Payment processing failed: ' + (error.error?.message || 'Unknown error');
-                this.processing = false;
-              }
-            });
-          },
-          error: (error: any) => {
-            this.errorMessage = 'Error creating order: ' + (error.error?.message || 'Unknown error');
-            this.processing = false;
-          }
-        });
+      // 🧾 Create Order
+      switchMap((cart: any) =>
+        this.orderService.createOrder(this.userId, cart.items)
+      ),
+
+      // 💳 Create Payment Intent
+      switchMap((order: any) => {
+        const paymentRequest = {
+          orderId: order.id,
+          amount: this.totalAmount,
+          currency: this.paymentData.currency,
+          description: `Order #${order.id}`,
+          customerEmail: this.paymentData.email,
+          paymentMethod: 'CARD'
+        };
+
+        return this.paymentService.createStripeIntent(paymentRequest);
+      })
+
+    ).subscribe({
+
+      next: (response: any) => {
+        this.successMessage = '✅ Payment initiated successfully!';
+        this.processing = false;
+
+        setTimeout(() => {
+          window.location.href = '/orders';
+        }, 2000);
       },
-      error: (error: any) => {
-        this.errorMessage = 'Error loading cart: ' + (error.error?.message || 'Unknown error');
+
+      error: (err) => {
+        this.errorMessage = err?.error?.message || 'Something went wrong';
         this.processing = false;
       }
     });
